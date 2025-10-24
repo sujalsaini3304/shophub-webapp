@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ShoppingCart,
   Menu,
@@ -11,30 +11,31 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
+import axios from "axios";
+import useStore from "../../store";
 
 export default function Home() {
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
+  // const [menuOpen, setMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const { server, product_category, set_product_category } = useStore();
 
-  const categories = [
-    {
-      name: "Appliances",
-      image: "../../public/appliances.jpeg",
-    },
-    {
-      name: "Fashion",
-      image: "../../public/fashion.jpeg",
-    },
-    {
-      name: "Home & Living",
-      image: "../../public/products.jpeg",
-    },
-    {
-      name: "Herbs",
-      image: "../../public/Herbs.jpeg",
-    },
-  ];
+  const fetchProductCategories = async () => {
+    await axios
+      .get(`${server}/api/admin/product/category`)
+      .then((res) => {
+        set_product_category(res.data.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  useEffect(() => {
+    if (product_category.length == 0) {
+      fetchProductCategories();
+    }
+  }, [product_category]);
 
   const products = [
     {
@@ -152,19 +153,19 @@ export default function Home() {
           </button>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {categories.map((category, index) => (
+          {product_category.map((item, index) => (
             <div
               key={index}
               className="relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition cursor-pointer group"
             >
               <img
-                src={category.image}
-                alt={category.name}
+                src={item.image_url}
+                alt={item.category}
                 className="w-full h-48 object-cover group-hover:scale-110 transition duration-300"
               />
               <div className="absolute inset-0  bg-opacity-40 flex items-center justify-center">
                 <h4 className="text-white text-xl font-semibold">
-                  {category.name}
+                  {item.category}
                 </h4>
               </div>
             </div>
