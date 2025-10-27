@@ -16,95 +16,46 @@ import useStore from "../../store";
 
 export default function Home() {
   const navigate = useNavigate();
-  // const [menuOpen, setMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
-  const { server, product_category, set_product_category } = useStore();
+  const {
+    server,
+    product_category,
+    set_products,
+    products,
+    set_product_category,
+  } = useStore();
 
   const fetchProductCategories = async () => {
-    await axios
-      .get(`${server}/api/admin/product/category`)
-      .then((res) => {
-        set_product_category(res.data.data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    try {
+      const res = await axios.get(`${server}/api/admin/product/category`);
+      set_product_category(res.data.data);
+      console.log(res.data);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const res = await axios.get(`${server}/api/admin/product`);
+      set_products(res.data.data);
+      console.log(res.data.data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
   };
 
   useEffect(() => {
-    if (product_category.length == 0) {
+    if (!product_category || product_category.length === 0) {
       fetchProductCategories();
     }
-  }, [product_category]);
+    if (!products || products.length === 0) {
+      fetchProducts();
+    }
+  }, []);
 
-  const products = [
-    {
-      id: 1,
-      name: "Wireless Headphones",
-      price: 79.99,
-      image:
-        "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop",
-      rating: 4.5,
-    },
-    {
-      id: 2,
-      name: "Smart Watch",
-      price: 199.99,
-      image:
-        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop",
-      rating: 4.8,
-    },
-    {
-      id: 3,
-      name: "Laptop Backpack",
-      price: 49.99,
-      image:
-        "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop",
-      rating: 4.3,
-    },
-    {
-      id: 4,
-      name: "Running Shoes",
-      price: 89.99,
-      image:
-        "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop",
-      rating: 4.6,
-    },
-    {
-      id: 5,
-      name: "Coffee Maker",
-      price: 129.99,
-      image:
-        "https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?w=400&h=400&fit=crop",
-      rating: 4.4,
-    },
-    {
-      id: 6,
-      name: "Yoga Mat",
-      price: 29.99,
-      image:
-        "https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=400&h=400&fit=crop",
-      rating: 4.7,
-    },
-    {
-      id: 7,
-      name: "Desk Lamp",
-      price: 39.99,
-      image:
-        "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=400&h=400&fit=crop",
-      rating: 4.2,
-    },
-    {
-      id: 8,
-      name: "Water Bottle",
-      price: 19.99,
-      image:
-        "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400&h=400&fit=crop",
-      rating: 4.5,
-    },
-  ];
-
-  const addToCart = () => {
+  const addToCart = (e) => {
+    e.stopPropagation(); // Prevent navigation when clicking Add to Cart
     setCartCount(cartCount + 1);
   };
 
@@ -113,21 +64,6 @@ export default function Home() {
       {/* Header */}
       <Header />
       {/* Hero Section */}
-
-      {/* <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20"> */}
-      {/* <div className="max-w-7xl h-60 w-full mx-auto px-4 sm:px-6 lg:px-8"> */}
-      {/* <div className="text-center">
-            <h2 className="text-4xl md:text-6xl font-bold mb-4">Summer Sale</h2>
-            <p className="text-xl md:text-2xl mb-8">
-              Up to 50% off on selected items
-            </p>
-            <button className="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition transform hover:scale-105">
-              Shop Now
-            </button>
-          </div> */}
-      {/* <image src="../../public/Herbs.jpeg" className="w-full h-48" alt="poster" /> */}
-      {/* </div> */}
-      {/* </section> */}
 
       <section className="w-full bg-white">
         <picture>
@@ -153,23 +89,27 @@ export default function Home() {
           </button>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {product_category.map((item, index) => (
-            <div
-              key={index}
-              className="relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition cursor-pointer group"
-            >
-              <img
-                src={item.image_url}
-                alt={item.category}
-                className="w-full h-48 object-cover group-hover:scale-110 transition duration-300"
-              />
-              <div className="absolute inset-0  bg-opacity-40 flex items-center justify-center">
-                <h4 className="text-white text-xl font-semibold">
-                  {item.category}
-                </h4>
+          {Array.isArray(product_category) && product_category.length > 0 ? (
+            product_category.map((item, index) => (
+              <div
+                key={index}
+                className="relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition cursor-pointer group"
+              >
+                <img
+                  src={item.image_url}
+                  alt={item.category}
+                  className="w-full h-48 object-cover group-hover:scale-110 transition duration-300"
+                />
+                <div className="absolute inset-0  bg-opacity-40 flex items-center justify-center">
+                  <h4 className="text-white text-xl font-semibold">
+                    {item.category}
+                  </h4>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="text-gray-500">No categories found.</p>
+          )}
         </div>
       </section>
 
@@ -184,51 +124,83 @@ export default function Home() {
           </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              onClick={() => {
-                navigate("/product");
-              }}
-              className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden group"
-            >
-              <div className="relative overflow-hidden">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-64 object-cover group-hover:scale-110 transition duration-300"
-                />
-                <button className="absolute top-4 right-4 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition">
-                  <Heart className="w-5 h-5 text-gray-600" />
-                </button>
-              </div>
-              <div className="p-4">
-                <h4 className="font-semibold text-gray-900 mb-2">
-                  {product.name}
-                </h4>
-                <div className="flex items-center mb-2">
-                  <div className="flex text-yellow-400">
-                    {"★".repeat(Math.floor(product.rating))}
-                    {"☆".repeat(5 - Math.floor(product.rating))}
+          {Array.isArray(products) && products.length > 0 ? (
+            products.map((product) => {
+              // Calculate discounted price for each product
+              const originalPrice = product.product_price;
+              const discountedPrice =
+                originalPrice * (1 - product.product_discount_percentage);
+              const discountPercent = Math.round(
+                product.product_discount_percentage * 100
+              );
+
+              return (
+                <div
+                  key={product._id}
+                  onClick={() => {
+                    navigate("/product", {
+                      state: { product_id: product._id },
+                    });
+                  }}
+                  className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden group cursor-pointer"
+                >
+                  <div className="relative overflow-hidden">
+                    <img
+                      src={product.image_url}
+                      alt={product.product_name}
+                      className="w-full h-64 object-cover group-hover:scale-110 transition duration-300"
+                    />
+                    <button
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute top-4 right-4 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition"
+                    >
+                      <Heart className="w-5 h-5 text-gray-600" />
+                    </button>
                   </div>
-                  <span className="text-sm text-gray-600 ml-2">
-                    ({product.rating})
-                  </span>
+                  <div className="p-4">
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      {product.product_name}
+                    </h4>
+                    <div className="flex items-center mb-2">
+                      <div className="flex text-yellow-400">
+                        {"★".repeat(Math.floor(product.product_rating))}
+                        {"☆".repeat(5 - Math.floor(product.product_rating))}
+                      </div>
+                      <span className="text-sm text-gray-600 ml-2">
+                        ({product.product_rating})
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      {/* Price */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl font-bold text-blue-600">
+                          ₹{discountedPrice.toFixed(2)}
+                        </span>
+                        {discountPercent > 0 && (
+                          <>
+                            <span className="text-sm text-gray-500 line-through">
+                              ₹{originalPrice.toFixed(2)}
+                            </span>
+                            <span className="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-semibold">
+                              {discountPercent}% OFF
+                            </span>
+                          </>
+                        )}
+                      </div>
+                      <button
+                        onClick={addToCart}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition w-full"
+                      >
+                        Add to Cart
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xl font-bold text-blue-600">
-                    ${product.price}
-                  </span>
-                  <button
-                    onClick={addToCart}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-                  >
-                    Add to Cart
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+              );
+            })
+          ) : (
+            <p className="text-gray-500">No product found.</p>
+          )}
         </div>
       </section>
 
